@@ -5,6 +5,9 @@
     <groupId>com.github.dingey</groupId>
     <artifactId>weixin-sdk</artifactId>
     <version>0.0.1</version>
+    <name>weixin-sdk</name>
+    <description>微信支付、公众号SDK</description>
+    <url>https://github.com/dingey/weixin-sdk</url>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>

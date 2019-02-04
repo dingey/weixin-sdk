@@ -6,6 +6,7 @@ import java.util.List;
 import com.github.dingey.weixin.model.CustomMessage.TextCustomMessage.Text;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,7 @@ import lombok.Setter;
 public interface CustomMessage {
     /**
      * @param touser 接收者openid
+     * @return 模版参数自身
      */
     CustomMessage setTouser(String touser);
 
@@ -50,7 +52,6 @@ public interface CustomMessage {
 
     public static class TextCustomMessage implements CustomMessage {
         @Getter
-        @Setter
         private String touser;
         @Getter
         @Setter
@@ -116,6 +117,7 @@ public interface CustomMessage {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     static class Video extends Media {
         private String thumb_media_id;
         private String title;
@@ -130,6 +132,7 @@ public interface CustomMessage {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     static class Music extends Media {
         private String thumb_media_id;
         private String title;
@@ -148,6 +151,7 @@ public interface CustomMessage {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=false)
     static class Article extends Media {
         private String title;
         private String description;

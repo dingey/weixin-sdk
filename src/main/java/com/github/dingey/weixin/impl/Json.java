@@ -1,0 +1,373 @@
+package com.github.dingey.weixin.impl;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author di
+ */
+class Json {
+	SimpleDateFormat sdf;
+	boolean snakeCase = false;
+	static Json json;
+
+	private Json() {
+	}
+
+	public Json setDateFormat(String pattern) {
+		this.sdf = new SimpleDateFormat(pattern);
+		return this;
+	}
+
+	private SimpleDateFormat getDateFormat() {
+		if (sdf == null) {
+			sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		}
+		return sdf;
+	}
+
+	public Json snakeCase(boolean snakeCase) {
+		this.snakeCase = snakeCase;
+		return this;
+	}
+
+	private static Json getJson() {
+		if (json == null) {
+			json = new Json();
+		}
+		return json;
+	}
+
+	private List<String> split(String json) {
+		int off = 0;
+		int ang1 = 0;// {
+		int ang2 = 0;// }
+		int squa1 = 0;// [
+		int squa2 = 0;// ]
+		int quot = 0;// "
+		List<Integer> is = new ArrayList<>();
+		List<String> ss = new ArrayList<>();
+		while (off < json.length()) {
+			char c = json.charAt(off);
+			switch (c) {
+			case '"':
+				if (off == 0 || json.charAt(off - 1) != '\\') {
+					quot++;
+				}
+				break;
+			case '{':
+				if (quot % 2 == 0) {
+					ang1++;
+				}
+				break;
+			case '}':
+				if (quot % 2 == 0) {
+					ang2++;
+				}
+				break;
+			case '[':
+				if (quot % 2 == 0) {
+					squa1++;
+				}
+				break;
+			case ']':
+				if (quot % 2 == 0) {
+					squa2++;
+				}
+				break;
+			case ',':
+				if (quot % 2 == 0 && ang1 == ang2 && squa1 == squa2) {
+					is.add(off);
+				}
+				break;
+			default:
+				break;
+			}
+			off++;
+		}
+		if (is.size() > 1) {
+			ss.add(json.substring(0, is.get(0)));
+			for (int i = 0; i < is.size() - 1; i++) {
+				ss.add(json.substring(is.get(i) + 1, is.get(i + 1)));
+			}
+			ss.add(json.substring(is.get(is.size() - 1) + 1));
+		} else if (is.size() == 1) {
+			ss.add(json.substring(0, is.get(0)));
+			ss.add(json.substring(is.get(0) + 1));
+		} else {
+			ss.add(json);
+		}
+		return ss;
+	}
+
+	static <T> T fromJson(String json, Class<T> c) {
+		return getJson().toObject(json, c);
+	}
+
+	static String toJsonString(Object o) {
+		return getJson().toJson(o);
+	}
+
+	public <T> String toJson(T o) {
+		if (o == null) {
+			return null;
+		} else if (o.getClass() == byte.class || o.getClass() == short.class || o.getClass() == int.class || o.getClass() == long.class || o.getClass() == double.class
+				|| o.getClass() == float.class || o.getClass() == java.lang.Byte.class || o.getClass() == java.lang.Short.class || o.getClass() == java.lang.Integer.class
+				|| o.getClass() == java.lang.Long.class || o.getClass() == java.lang.Double.class || o.getClass() == java.lang.Float.class || o.getClass() == boolean.class
+				|| o.getClass() == java.lang.Boolean.class) {
+			return String.valueOf(o);
+		} else if (o.getClass() == java.lang.String.class || o.getClass() == java.lang.Character.class) {
+			return "\"" + String.valueOf(o) + "\"";
+		} else if (o.getClass() == Date.class || o.getClass() == java.sql.Date.class || o.getClass() == java.sql.Time.class) {
+			return getDateFormat().format(o);
+		} else if (o.getClass().isArray()) {
+			StringBuilder str = new StringBuilder().append("[");
+			Object[] os = (Object[]) o;
+			for (Object o0 : os) {
+				if (o0.getClass() == String.class || o0.getClass() == Date.class) {
+					str.append("\"").append(toJson(o0)).append("\",");
+				} else {
+					str.append(toJson(o0)).append(",");
+				}
+			}
+			return str.deleteCharAt(str.length() - 1).append("]").toString();
+		} else if (o.getClass() == java.util.List.class || o.getClass() == java.util.ArrayList.class) {
+			StringBuilder str = new StringBuilder().append("[");
+			List<?> os = (List<?>) o;
+			for (Object o0 : os) {
+				if (o0.getClass() == String.class || o0.getClass() == Date.class) {
+					str.append("\"").append(toJson(o0)).append("\",");
+				} else {
+					str.append(toJson(o0)).append(",");
+				}
+			}
+			return str.deleteCharAt(str.length() - 1).append("]").toString();
+		} else if (o.getClass() == java.util.Map.class || o.getClass() == java.util.LinkedHashMap.class) {
+			Map<?, ?> m0 = (Map<?, ?>) o;
+			StringBuilder str = new StringBuilder().append("{");
+			for (Object key : m0.keySet()) {
+				str.append("\"").append(key).append("\":").append(toJson(m0.get(key))).append(",");
+			}
+			return str.deleteCharAt(str.length() - 1).append("}").toString();
+		} else if ((o instanceof Object) && o.getClass() != Object.class && o.getClass() != Class.class) {
+			StringBuilder str = new StringBuilder().append("{");
+			try {
+				for (Field f : getDeclaredFields(o.getClass())) {
+					f.setAccessible(true);
+					if (f.get(o) == null) {
+						continue;
+					}
+					String n0 = f.getName();
+					Object v = f.get(o);
+					if (f.getType() == String.class || f.getType() == Date.class) {
+						str.append("\"").append(n0).append("\":\"").append(toJson(v)).append("\",");
+					} else {
+						str.append("\"").append(n0).append("\":").append(toJson(v)).append(",");
+					}
+				}
+				str.deleteCharAt(str.length() - 1);
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			return str.append("}").toString();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T toObject(String json, Class<T> c) {
+		if (json == null && !c.isPrimitive()) {
+			return null;
+		} else if ((json == null || json.isEmpty()) && c.isPrimitive()) {
+			throw new IllegalArgumentException("json is null or empty that can't be transform to primitive Class.");
+		}
+		T o = null;
+		json = json.trim();
+		o = (T) toObjectVal(toObject(json), c);
+		return o;
+	}
+
+	public <T> List<T> toObjects(String json, Class<T> c) {
+		if (json == null && !c.isPrimitive()) {
+			return null;
+		} else if ((json == null || json.isEmpty()) && c.isPrimitive()) {
+			throw new IllegalArgumentException("json is null or empty that can't be transform to primitive Class.");
+		}
+		List<T> list = new ArrayList<>();
+		json = json.trim();
+		toObjectVal(toObject(json), List.class);
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object toObjectVal(Object val, Class<?> c) {
+		try {
+			if (val == null) {
+				return null;
+			} else if (c == boolean.class || c == Boolean.class) {
+				return Boolean.valueOf(String.valueOf(val));
+			} else if (c == char.class || c == Character.class) {
+				return new Character(String.valueOf(val).charAt(0));
+			} else if (c == byte.class || c == Byte.class) {
+				return Byte.valueOf(String.valueOf(val));
+			} else if (c == short.class || c == Short.class) {
+				return Short.valueOf(String.valueOf(val));
+			} else if (c == int.class || c == Integer.class) {
+				return Integer.valueOf(String.valueOf(val));
+			} else if (c == long.class || c == Long.class) {
+				return Long.valueOf(String.valueOf(val));
+			} else if (c == float.class || c == Float.class) {
+				return Float.valueOf(String.valueOf(val));
+			} else if (c == double.class || c == Double.class) {
+				return Double.valueOf(String.valueOf(val));
+			} else if (c == Date.class) {
+				return getDateFormat().parse(String.valueOf(val));
+			} else if (c == java.sql.Date.class) {
+				return new java.sql.Date(getDateFormat().parse(String.valueOf(val)).getTime());
+			} else if (c == Time.class) {
+				return new Time(getDateFormat().parse(String.valueOf(val)).getTime());
+			} else if (c == String.class) {
+				return String.valueOf(val);
+			} else if (c.isArray() && val != null) {
+				List<Object> ss = (List<Object>) val;
+				Class<?> type = c.getComponentType();
+				if (type == String.class) {
+					String[] os = new String[ss.size()];
+					for (int i = 0; i < os.length; i++) {
+						os[i] = toObject(String.valueOf(ss.get(i)), String.class);
+					}
+					return os;
+				} else {
+					Object[] os = new Object[ss.size()];
+					for (int i = 0; i < os.length; i++) {
+						os[i] = toObject(String.valueOf(ss.get(i)), type);
+					}
+					return os;
+				}
+			} else if (c == List.class || c == ArrayList.class) {
+				return val;
+			} else if (c == Map.class || c == HashMap.class || c == LinkedHashMap.class) {
+				return val;
+			} else if (c != Object.class && c != Class.class && (c instanceof Object) && val != null) {
+				Map<String, Object> map = (Map<String, Object>) val;
+				Object o = c.newInstance();
+				for (Field f : getDeclaredFields(c)) {
+					if (!f.isAccessible()) {
+						f.setAccessible(true);
+					}
+					Object v = map.get(f.getName());
+					if (v != null && (f.getType() == List.class || f.getType() == ArrayList.class)) {
+						ParameterizedType pt = (ParameterizedType) f.getGenericType();
+						Type t = pt.getActualTypeArguments()[0];
+						List<?> vs = (List<?>) v;
+						ArrayList<Object> ts = new ArrayList<>();
+						for (Object ov : vs) {
+							ts.add(toObjectVal(ov, (Class<?>) t));
+						}
+						f.set(o, ts);
+					} else {
+						f.set(o, toObjectVal(v, f.getType()));
+					}
+				}
+				return o;
+			}
+		} catch (ClassCastException e1) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return val;
+	}
+
+	public Object toObject(String json) {
+		json = json.trim();
+		if (json.startsWith("{")) {
+			LinkedHashMap<String, Object> m = new LinkedHashMap<>();
+			String s0 = json.substring(json.indexOf("{") + 1, json.lastIndexOf("}")).trim();
+			for (String s : split(s0)) {
+				String k = s.substring(0, s.indexOf(":") - 1).replaceAll("\"", "").trim();
+				if (snakeCase) {
+					k = snakeCase(k);
+				}
+				String v = s.substring(s.indexOf(":") + 1).trim();
+				if (v.startsWith("\"") && v.endsWith("\"")) {
+					m.put(k, v.substring(1, v.length() - 1));
+				} else {
+					m.put(k, toObject(v));
+				}
+			}
+			return m;
+		} else if (json.startsWith("[")) {
+			String s0 = json.substring(json.indexOf("[") + 1, json.lastIndexOf("]")).trim();
+			List<Object> ls = new ArrayList<>();
+			if (s0.startsWith("{") || s0.startsWith("[")) {
+				for (String s1 : split(s0)) {
+					ls.add(toObject(s1));
+				}
+			} else {
+				for (String s : s0.split(",")) {
+					ls.add(s.replaceAll("\"", ""));
+				}
+			}
+			return ls;
+		} else {
+			if (json.contains(".")) {
+				return Double.valueOf(json);
+			} else if (json.equalsIgnoreCase("true") || json.equalsIgnoreCase("false")) {
+				return Boolean.valueOf(json);
+			} else if (json.startsWith("\"")) {
+				return json.replaceAll("\"", "");
+			} else if (json.length() < 12) {
+				return Integer.valueOf(json);
+			} else if (json.length() < 20) {
+				return Long.valueOf(json);
+			} else {
+				return json;
+			}
+		}
+	}
+
+	private String snakeCase(String camelCase) {
+		if (camelCase != null && !camelCase.trim().isEmpty()) {
+			char[] cs = camelCase.toCharArray();
+			StringBuilder sb = new StringBuilder();
+			sb.append(Character.toLowerCase(cs[0]));
+			for (int i = 1; i < cs.length; i++) {
+				if (Character.isUpperCase(cs[i])) {
+					sb.append("_").append(Character.toLowerCase(cs[i]));
+				} else {
+					sb.append(camelCase.toCharArray()[i]);
+				}
+			}
+			return sb.toString();
+		} else {
+			return camelCase;
+		}
+	}
+
+	private List<Field> getDeclaredFields(Class<?> t) {
+		List<Field> fields = new ArrayList<>();
+		for (Class<?> clazz = t; clazz != Object.class && clazz != Class.class && clazz != Field.class; clazz = clazz.getSuperclass()) {
+			try {
+				for (Field f : clazz.getDeclaredFields()) {
+					int modifiers = f.getModifiers();
+					if (!Modifier.isFinal(modifiers) && !Modifier.isStatic(modifiers) && !Modifier.isNative(modifiers) && !Modifier.isTransient(modifiers)) {
+						fields.add(f);
+					}
+				}
+			} catch (Exception e) {
+			}
+		}
+		return fields;
+	}
+}

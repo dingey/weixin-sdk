@@ -5,7 +5,6 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
-@SuppressWarnings("unused")
 public class TemplateMessage implements Serializable {
 	private static final long serialVersionUID = -1569251036795508330L;
 	// 接收者openid 必填
@@ -21,7 +20,7 @@ public class TemplateMessage implements Serializable {
 	// 所需跳转到小程序的具体页面路径，支持带参数,（示例index?foo=bar），暂不支持小游戏
 	private String pagepath;
 	// 模板数据 必填
-	private String data;
+	private Object data;
 	// 模板内容字体颜色，不填默认为黑色
 	private String color;
 }

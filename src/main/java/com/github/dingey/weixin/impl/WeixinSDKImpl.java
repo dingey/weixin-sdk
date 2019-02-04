@@ -2,7 +2,7 @@ package com.github.dingey.weixin.impl;
 
 import com.github.dingey.weixin.WeixinSDK;
 
-public class WeixinSDKImpl extends MpSDKImpl implements WeixinSDK {
+public class WeixinSDKImpl extends AppletsSDKImpl implements WeixinSDK {
     private WeixinSDKImpl() {
     }
 

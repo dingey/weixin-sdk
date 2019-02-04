@@ -5,7 +5,6 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
-@SuppressWarnings("unused")
 public class Orderquery implements Serializable {
 	private static final long serialVersionUID = -7706757053052180519L;
 	// 商户号[必填]

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.alibaba.fastjson.JSONObject;
 import com.github.dingey.weixin.MpSDK;
 import com.github.dingey.weixin.model.CustomMessage;
 import com.github.dingey.weixin.model.TemplateMessage;
@@ -21,26 +20,26 @@ public class MpSDKImpl extends PaySDKImpl implements MpSDK {
     @Override
     public Map<String, Object> getAllPrivateTemplate(String accessToken) throws Exception {
         String string = request("https://api.weixin.qq.com/cgi-bin/template/get_all_private_template?access_token=" + accessToken);
-        return JSONObject.parseObject(string);
+        return fromJson(string);
     }
 
     @Override
     public Map<String, Object> sendCustomMessage(String accessToken, String openid, CustomMessage message) throws Exception {
         message.setTouser(openid);
-        String request = request("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + accessToken, JSONObject.toJSONString(message));
-        return JSONObject.parseObject(request);
+        String request = request("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + accessToken, toJson(message));
+        return fromJson(request);
     }
 
     @Override
     public Map<String, Object> sendTemplateMessage(String accessToken, TemplateMessage message) throws Exception {
-        String request = request("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + accessToken, JSONObject.toJSONString(message));
-        return JSONObject.parseObject(request);
+        String request = request("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + accessToken, toJson(message));
+        return fromJson(request);
     }
 
     @Override
     public Map<String, Object> userInfo(String accessToken, String openid) throws Exception {
         String request = request("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + accessToken + "&openid=" + openid + "&lang=zh_CN");
-        return JSONObject.parseObject(request);
+        return fromJson(request);
     }
 
     @Override
@@ -57,8 +56,8 @@ public class MpSDKImpl extends PaySDKImpl implements MpSDK {
             list.add(m);
         }
         p.put("user_list", list);
-        String request = request("https://api.weixin.qq.com/cgi-bin/user/info/batchget?access_token=" + accessToken, JSONObject.toJSONString(p));
-        return JSONObject.parseObject(request);
+        String request = request("https://api.weixin.qq.com/cgi-bin/user/info/batchget?access_token=" + accessToken,toJson(p));
+        return fromJson(request);
     }
 
     @Override
@@ -67,7 +66,7 @@ public class MpSDKImpl extends PaySDKImpl implements MpSDK {
         p.put("type", type);
         p.put("offset", offset);
         p.put("count", count);
-        String request = request("https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=" + accessToken, JSONObject.toJSONString(p));
-        return JSONObject.parseObject(request);
+        String request = request("https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=" + accessToken, toJson(p));
+        return fromJson(request);
     }
 }

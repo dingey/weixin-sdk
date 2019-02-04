@@ -13,7 +13,7 @@ public class SDKTest {
         sdk = WeixinSDKBuilder.build();
     }
 
-    //@Test
+    @Test
     public void test() throws Exception {
         // decryptUserInfo();
     }

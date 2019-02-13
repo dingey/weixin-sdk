@@ -97,7 +97,7 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 	}
 
 	@Override
-	public Map<String, Object> jscode2session(String appid, String secret, Integer jsCode, String grantType) throws Exception {
+	public Map<String, Object> jscode2session(String appid, String secret, String jsCode, String grantType) throws Exception {
 		String resp = request("https://api.weixin.qq.com/sns/jscode2session?appid=" + appid + "&secret=" + secret + "&js_code=" + jsCode + "&grant_type=" + grantType == null? "authorization_code": grantType);
 		return fromJson(resp);
 	}

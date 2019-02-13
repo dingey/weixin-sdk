@@ -112,7 +112,7 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 	String request(String path, String param, SSLSocketFactory sslSocketFactory) throws Exception {
 		HttpURLConnection conn = connect(path, param, sslSocketFactory);
 		InputStream inStream = conn.getInputStream();
-		String resp = new String(toByteArray(inStream), "UTF-8");
+		String resp = new String(toByteArray(conn), "UTF-8");
 		if (getLogger().isDebugEnabled()) {
 			getLogger().debug("请求地址{},请求参数{},返回{}", path, param, resp);
 		}
@@ -139,7 +139,8 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 		return conn;
 	}
 
-	static byte[] toByteArray(InputStream input) throws IOException {
+	static byte[] toByteArray(HttpURLConnection c) throws IOException {
+		InputStream input = c.getInputStream();
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
 			byte[] buffer = new byte[4096];
@@ -149,20 +150,18 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 			}
 		} finally {
 			input.close();
+			c.disconnect();
 		}
 		return output.toByteArray();
 	}
 
 	private SSLSocketFactory getSslSocketFactory(InputStream sec, String key) throws Exception {
-		// 取得SSL的SSLContext实例
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		// 初始化keystore
 		KeyStore keyStore = KeyStore.getInstance("PKCS12");
 		keyStore.load(sec, key.toCharArray());
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		keyManagerFactory.init(keyStore, key.toCharArray());
-		// 第一个参数是授权的密钥管理器，用来授权验证。TrustManager[]第二个是被授权的证书管理器，用来验证服务器端的证书。第三个参数是一个随机数值，可以填写null
 		sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
 		return sslContext.getSocketFactory();
 	}

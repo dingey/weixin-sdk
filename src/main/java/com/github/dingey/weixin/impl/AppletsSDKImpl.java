@@ -27,12 +27,12 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 			sb.append("&").append("is_hyaline=").append(isHyaline);
 		}
 		HttpURLConnection conn = connect("https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" + accessToken, sb.toString(), null);
-		InputStream inputStream = conn.getInputStream();
-		byte[] array = toByteArray(inputStream);
+		String contentType=conn.getContentType();
+		byte[] array = toByteArray(conn);
 		if (getLogger().isDebugEnabled()) {
 			getLogger().debug("请求地址{},请求参数{},返回头{}", path, sb.toString(), conn.getContentType());
 		}
-		if (conn.getContentType().contains("jpeg")) {
+		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
 			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, sb.toString(), conn.getContentType(), new String(array, "utf-8"));
@@ -61,12 +61,12 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		}
 		String paramStr = toJson(param);
 		HttpURLConnection conn = connect("https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=" + accessToken, paramStr, null);
-		InputStream inputStream = conn.getInputStream();
-		byte[] array = toByteArray(inputStream);
+		String contentType=conn.getContentType();
+		byte[] array = toByteArray(conn);
 		if (getLogger().isDebugEnabled()) {
 			getLogger().debug("请求地址{},请求参数{},返回头{}", path, paramStr, conn.getContentType());
 		}
-		if (conn.getContentType().contains("jpeg")) {
+		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
 			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), new String(array, "utf-8"));
@@ -83,12 +83,12 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		}
 		String paramStr = toJson(param);
 		HttpURLConnection conn = connect("https://api.weixin.qq.com/wxa/createWXAQRCode?access_token=" + accessToken, paramStr, null);
-		InputStream inputStream = conn.getInputStream();
-		byte[] array = toByteArray(inputStream);
+		String contentType=conn.getContentType();
+		byte[] array = toByteArray(conn);
 		if (getLogger().isDebugEnabled()) {
 			getLogger().debug("请求地址{},请求参数{},返回头{}", path, paramStr, conn.getContentType());
 		}
-		if (conn.getContentType().contains("jpeg")) {
+		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
 			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), new String(array, "utf-8"));

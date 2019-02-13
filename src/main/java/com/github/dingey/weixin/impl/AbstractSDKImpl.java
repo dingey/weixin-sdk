@@ -143,7 +143,7 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 		InputStream input = c.getInputStream();
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[256];
 			int n = 0;
 			while (-1 != (n = input.read(buffer))) {
 				output.write(buffer, 0, n);

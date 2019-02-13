@@ -57,5 +57,5 @@ public interface AppletsSDK extends MpSDK {
 	 * @return 结果
 	 * @throws Exception 异常
 	 */
-	Map<String,Object> jscode2session(String appid, String secret, Integer jsCode,String grantType) throws Exception;
+	Map<String,Object> jscode2session(String appid, String secret, String jsCode,String grantType) throws Exception;
 }

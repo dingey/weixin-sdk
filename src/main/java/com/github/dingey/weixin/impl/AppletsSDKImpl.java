@@ -37,7 +37,7 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		} else {
 			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, sb.toString(), conn.getContentType(), new String(array, "utf-8"));
 		}
-		return toJson(new String(array, "utf-8"));
+		return fromJson(new String(array, "utf-8"));
 	}
 
 	@Override

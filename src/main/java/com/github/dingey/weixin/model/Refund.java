@@ -5,7 +5,6 @@ import java.io.Serializable;
 import lombok.Data;
 
 @Data
-@SuppressWarnings("unused")
 public class Refund implements Serializable {
 	private static final long serialVersionUID = 7018661863972647470L;
 	// 商户号[必填]
@@ -13,7 +12,7 @@ public class Refund implements Serializable {
 	// 小程序、公众号等应用ID[必填]
 	private String appId;
 	// 商户秘钥
-	private String mchKey;
+//	private String mchKey;
 
 	// 微信订单号[二选一]
 	private String transactionId;

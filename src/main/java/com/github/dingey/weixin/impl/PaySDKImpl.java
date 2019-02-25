@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.github.dingey.weixin.PaySDK;
 import com.github.dingey.weixin.SignType;
+import com.github.dingey.weixin.WeixinException;
 import com.github.dingey.weixin.model.Orderquery;
 import com.github.dingey.weixin.model.Refund;
 import com.github.dingey.weixin.model.Unifiedorder;
@@ -16,7 +17,7 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 	}
 
 	@Override
-	public Map<String, String> unifiedorder(Unifiedorder order) throws Exception {
+	public Map<String, String> unifiedorder(Unifiedorder order) throws WeixinException {
 		Map<String, String> param = new HashMap<>();
 		param.put("appid", order.getAppId());
 		param.put("mch_id", order.getMchId());
@@ -39,7 +40,7 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 	}
 
 	@Override
-	public Map<String, String> orderquery(Orderquery order) throws Exception {
+	public Map<String, String> orderquery(Orderquery order) throws WeixinException {
 		Map<String, String> param = new HashMap<>();
 		param.put("appid", order.getAppId());
 		param.put("mch_id", order.getMchId());
@@ -61,7 +62,7 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 	}
 
 	@Override
-	public Map<String, String> closeorder(Orderquery order) throws Exception {
+	public Map<String, String> closeorder(Orderquery order) throws WeixinException {
 		Map<String, String> param = new HashMap<>();
 		param.put("appid", order.getAppId());
 		param.put("mch_id", order.getMchId());
@@ -78,7 +79,7 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 	}
 
 	@Override
-	public Map<String, String> refund(Refund refund, InputStream secStream) throws Exception {
+	public Map<String, String> refund(Refund refund, String mchKey, InputStream secStream) throws WeixinException {
 		Map<String, String> param = new HashMap<>();
 		param.put("appid", refund.getAppId());
 		param.put("mch_id", refund.getMchId());
@@ -88,10 +89,10 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 		param.put("refund_fee", refund.getRefundFee());
 		param.put("total_fee", refund.getTotalFee());
 		param.put("transaction_id", refund.getTransactionId());
-		String sign = generateSignature(param, refund.getMchKey(), SignType.MD5);
+		String sign = generateSignature(param, mchKey, SignType.MD5);
 		param.put("sign", sign);
 		String xml = toXml(param);
-		String resp = request("https://api.mch.weixin.qq.com/secapi/pay/refund", xml, secStream, refund.getMchKey());
+		String resp = request("https://api.mch.weixin.qq.com/secapi/pay/refund", xml, secStream, mchKey);
 		if (getLogger().isDebugEnabled()) {
 			getLogger().debug("微信支付-申请退款，请求{},返回{}", xml, resp);
 		}
@@ -99,7 +100,7 @@ public class PaySDKImpl extends CryptoSDKImpl implements PaySDK {
 	}
 
 	@Override
-	public boolean verifyNotify(Map<String, String> data, String key) throws Exception {
+	public boolean verifyNotify(Map<String, String> data, String key) throws WeixinException {
 		if (!data.containsKey("sign")) {
 			return false;
 		}

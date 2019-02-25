@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyStore;
@@ -29,6 +30,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.github.dingey.weixin.AbstractSDK;
+import com.github.dingey.weixin.WeixinException;
 
 public abstract class AbstractSDKImpl implements AbstractSDK {
 	private Logger log;
@@ -97,62 +99,79 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 		return factory;
 	}
 
-	String request(String path) throws Exception {
+	String request(String path) throws WeixinException {
 		return request(path, null, null);
 	}
 
-	String request(String path, String param) throws Exception {
+	String request(String path, String param) throws WeixinException {
 		return request(path, param, null);
 	}
 
-	String request(String path, String param, InputStream sec, String key) throws Exception {
-		return request(path, param, getSslSocketFactory(sec, key));
-	}
-
-	String request(String path, String param, SSLSocketFactory sslSocketFactory) throws Exception {
-		HttpURLConnection conn = connect(path, param, sslSocketFactory);
-		InputStream inStream = conn.getInputStream();
-		String resp = new String(toByteArray(conn), "UTF-8");
-		if (getLogger().isDebugEnabled()) {
-			getLogger().debug("请求地址{},请求参数{},返回{}", path, param, resp);
-		}
-		return resp;
-	}
-
-	HttpURLConnection connect(String urlPath, String param, SSLSocketFactory sslSocketFactory) throws IOException {
-		URL url = new URL(urlPath);
-		HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-		if (sslSocketFactory != null) {
-			conn.setSSLSocketFactory(sslSocketFactory);
-		}
-		if (param == null || param.isEmpty()) {
-			conn.setRequestMethod("GET");
-		} else {
-			conn.setRequestMethod("POST");
-			conn.setDoOutput(true);
-			OutputStream outStream = conn.getOutputStream();
-			outStream.write(param.getBytes("UTF-8"));
-			outStream.flush();
-			outStream.close();
-		}
-		conn.setConnectTimeout(5000);
-		return conn;
-	}
-
-	static byte[] toByteArray(HttpURLConnection c) throws IOException {
-		InputStream input = c.getInputStream();
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
+	String request(String path, String param, InputStream sec, String key) throws WeixinException {
 		try {
-			byte[] buffer = new byte[256];
-			int n = 0;
-			while (-1 != (n = input.read(buffer))) {
-				output.write(buffer, 0, n);
-			}
-		} finally {
-			input.close();
-			c.disconnect();
+			return request(path, param, getSslSocketFactory(sec, key));
+		} catch (Exception e) {
+			throw new WeixinException(e);
 		}
-		return output.toByteArray();
+	}
+
+	String request(String path, String param, SSLSocketFactory sslSocketFactory) throws WeixinException {
+		try {
+			HttpURLConnection conn = connect(path, param, sslSocketFactory);
+			String resp;
+			resp = new String(toByteArray(conn), "UTF-8");
+
+			if (getLogger().isDebugEnabled()) {
+				getLogger().debug("请求地址{},请求参数{},返回{}", path, param, resp);
+			}
+			return resp;
+		} catch (UnsupportedEncodingException e) {
+			throw new WeixinException(e);
+		}
+	}
+
+	HttpURLConnection connect(String urlPath, String param, SSLSocketFactory sslSocketFactory) throws WeixinException {
+		try {
+			URL url = new URL(urlPath);
+			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+			if (sslSocketFactory != null) {
+				conn.setSSLSocketFactory(sslSocketFactory);
+			}
+			if (param == null || param.isEmpty()) {
+				conn.setRequestMethod("GET");
+			} else {
+				conn.setRequestMethod("POST");
+				conn.setDoOutput(true);
+				OutputStream outStream = conn.getOutputStream();
+				outStream.write(param.getBytes("UTF-8"));
+				outStream.flush();
+				outStream.close();
+			}
+			conn.setConnectTimeout(5000);
+			return conn;
+		} catch (IOException e) {
+			throw new WeixinException("创建http连接异常", e);
+		}
+	}
+
+	static byte[] toByteArray(HttpURLConnection c) throws WeixinException {
+		try {
+			InputStream input = c.getInputStream();
+			ByteArrayOutputStream output = new ByteArrayOutputStream();
+			try {
+				byte[] buffer = new byte[256];
+				int n = 0;
+				while (-1 != (n = input.read(buffer))) {
+					output.write(buffer, 0, n);
+				}
+			} finally {
+				input.close();
+				c.disconnect();
+			}
+			return output.toByteArray();
+		} catch (IOException e) {
+			throw new WeixinException("读取流异常", e);
+		}
 	}
 
 	private SSLSocketFactory getSslSocketFactory(InputStream sec, String key) throws Exception {
@@ -177,5 +196,13 @@ public abstract class AbstractSDKImpl implements AbstractSDK {
 
 	<T> T fromJson(String json, Class<T> c) {
 		return Json.fromJson(json, c);
+	}
+
+	String toString(byte[] bs, String charset) {
+		try {
+			return new String(bs, charset);
+		} catch (UnsupportedEncodingException e) {
+			throw new WeixinException(e);
+		}
 	}
 }

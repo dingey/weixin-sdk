@@ -1,6 +1,5 @@
 package com.github.dingey.weixin;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -17,9 +16,9 @@ public interface AppletsSDK extends MpSDK {
 	 * @param lineColor auto_color 为 false 时生效，使用 rgb 设置颜色 例如 {"r":"xxx","g":"xxx","b":"xxx"} 十进制表示;默认{"r":0,"g":0,"b":0}
 	 * @param isHyaline 是否需要透明底色，为 true 时，生成透明底色的小程序码;默认 false
 	 * @return 二维码字节流/或者map对象，根据返回类型判断是否调用成功。返回属于map或null失败，byte[]字节流成功。
-	 * @throws IOException IO异常
+	 * @throws WeixinException 异常
 	 */
-	Object getWXACode(String accessToken, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws IOException;
+	Object getWXACode(String accessToken, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws WeixinException;
 	
 	/**
 	 * 获取二维码<a href="https://developers.weixin.qq.com/miniprogram/dev/api/getWXACodeUnlimit.html">接口 B：适用于需要的码数量极多的业务场景</a>生成小程序码，可接受页面参数较短，生成个数不受限;调用分钟频率受限(5000次/分钟)
@@ -32,9 +31,9 @@ public interface AppletsSDK extends MpSDK {
 	 * @param lineColor auto_color 为 false 时生效，使用 rgb 设置颜色 例如 {"r":"xxx","g":"xxx","b":"xxx"} 十进制表示;默认{"r":0,"g":0,"b":0}
 	 * @param isHyaline 是否需要透明底色，为 true 时，生成透明底色的小程序码;默认 false
 	 * @return 二维码字节流/或者map对象，根据返回类型判断是否调用成功。返回属于map或null失败，byte[]字节流成功。
-	 * @throws IOException IO异常
+	 * @throws WeixinException 异常
 	 */
-	Object getWXACodeUnlimit(String accessToken,String scene, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws IOException;
+	Object getWXACodeUnlimit(String accessToken,String scene, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws WeixinException;
 
 	/**
 	 * 获取二维码<a href="https://developers.weixin.qq.com/miniprogram/dev/api/createWXAQRCode.html">接口 C：适用于需要的码数量较少的业务场景</a>生成二维码，可接受 path 参数较长，生成个数受限
@@ -43,9 +42,9 @@ public interface AppletsSDK extends MpSDK {
 	 * @param path 必填,扫码进入的小程序页面路径，最大长度 128 字节，不能为空
 	 * @param width 二维码的宽度，单位 px。最小 280px，最大 1280px;默认430
 	 * @return 二维码字节流/或者map对象，根据返回类型判断是否调用成功。返回属于map或null失败，byte[]字节流成功。
-	 * @throws IOException IO异常
+	 * @throws WeixinException 异常
 	 */
-	Object createWXAQRCode(String accessToken, String path, Integer width) throws IOException;
+	Object createWXAQRCode(String accessToken, String path, Integer width) throws WeixinException;
 	
 	/**
 	 * <a href="https://developers.weixin.qq.com/miniprogram/dev/api/code2Session.html">登录凭证校验</a>
@@ -55,7 +54,7 @@ public interface AppletsSDK extends MpSDK {
 	 * @param jsCode 登录时获取的 code
 	 * @param grantType 授权类型，此处只需填写 authorization_code
 	 * @return 结果
-	 * @throws Exception 异常
+	 * @throws WeixinException 异常
 	 */
-	Map<String,Object> jscode2session(String appid, String secret, String jsCode,String grantType) throws Exception;
+	Map<String,Object> jscode2session(String appid, String secret, String jsCode,String grantType) throws WeixinException;
 }

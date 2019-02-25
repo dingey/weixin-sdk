@@ -18,66 +18,79 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.github.dingey.weixin.CryptoSDK;
 import com.github.dingey.weixin.SignType;
+import com.github.dingey.weixin.WeixinException;
 
 public class CryptoSDKImpl extends AbstractSDKImpl implements CryptoSDK {
 	CryptoSDKImpl() {
 	}
 
-	public String decryptUserInfo(String sessionKey, String encryptedData, String iv) throws Exception {
-		Objects.requireNonNull(sessionKey, "sessionKey密钥不能为空");
-		Objects.requireNonNull(sessionKey, "encryptedData加密数据不能为空");
-		Objects.requireNonNull(sessionKey, "iv初始向量不能为空");
-		byte[] keybytes = Base64.getDecoder().decode(sessionKey);
-		byte[] encryptedBytes = Base64.getDecoder().decode(encryptedData);
-		byte[] ivBytes = Base64.getDecoder().decode(iv);
-		int base = 16;
-		if (keybytes.length % base != 0) {
-			int groups = keybytes.length / base + (keybytes.length % base != 0 ? 1 : 0);
-			byte[] tmp = new byte[groups * base];
-			Arrays.fill(tmp, (byte) 0);
-			System.arraycopy(keybytes, 0, tmp, 0, keybytes.length);
-			keybytes = tmp;
+	public Map<String,Object> decryptUserInfo(String sessionKey, String encryptedData, String iv) throws WeixinException {
+		try {
+			Objects.requireNonNull(sessionKey, "sessionKey密钥不能为空");
+			Objects.requireNonNull(sessionKey, "encryptedData加密数据不能为空");
+			Objects.requireNonNull(sessionKey, "iv初始向量不能为空");
+			byte[] keybytes = Base64.getDecoder().decode(sessionKey);
+			byte[] encryptedBytes = Base64.getDecoder().decode(encryptedData);
+			byte[] ivBytes = Base64.getDecoder().decode(iv);
+			int base = 16;
+			if (keybytes.length % base != 0) {
+				int groups = keybytes.length / base + (keybytes.length % base != 0 ? 1 : 0);
+				byte[] tmp = new byte[groups * base];
+				Arrays.fill(tmp, (byte) 0);
+				System.arraycopy(keybytes, 0, tmp, 0, keybytes.length);
+				keybytes = tmp;
+			}
+			// 初始化
+			Security.addProvider(new BouncyCastleProvider());
+			// 转化成JAVA的密钥格式
+			// 算法名称
+			String KEY_ALGORITHM = "AES";
+			Key key = new SecretKeySpec(keybytes, KEY_ALGORITHM);
+			// 初始化cipher
+			// 加解密算法/模式/填充方式
+			String algorithmStr = "AES/CBC/PKCS7Padding";
+			Cipher cipher = Cipher.getInstance(algorithmStr);
+			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+			return fromJson(new String(cipher.doFinal(encryptedBytes), "UTF-8"));
+		} catch (Exception e) {
+			throw new WeixinException("解密微信数据异常", e);
 		}
-		// 初始化
-		Security.addProvider(new BouncyCastleProvider());
-		// 转化成JAVA的密钥格式
-		// 算法名称
-		String KEY_ALGORITHM = "AES";
-		Key key = new SecretKeySpec(keybytes, KEY_ALGORITHM);
-		// 初始化cipher
-		// 加解密算法/模式/填充方式
-		String algorithmStr = "AES/CBC/PKCS7Padding";
-		Cipher cipher = Cipher.getInstance(algorithmStr);
-		cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
-		return new String(cipher.doFinal(encryptedBytes), "UTF-8");
 	}
 
 	@Override
-	public String hmacSHA256(String data, String key) throws Exception {
-		Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-		SecretKeySpec secret_key = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA256");
-		sha256_HMAC.init(secret_key);
-		byte[] array = sha256_HMAC.doFinal(data.getBytes("UTF-8"));
-		StringBuilder sb = new StringBuilder();
-		for (byte item : array) {
-			sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
+	public String hmacSHA256(String data, String key) throws WeixinException {
+		try {
+			Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+			SecretKeySpec secret_key = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA256");
+			sha256_HMAC.init(secret_key);
+			byte[] array = sha256_HMAC.doFinal(data.getBytes("UTF-8"));
+			StringBuilder sb = new StringBuilder();
+			for (byte item : array) {
+				sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
+			}
+			return sb.toString().toUpperCase();
+		} catch (Exception e) {
+			throw new WeixinException(e);
 		}
-		return sb.toString().toUpperCase();
 	}
 
 	@Override
-	public String md5(String data) throws Exception {
-		java.security.MessageDigest md = MessageDigest.getInstance("MD5");
-		byte[] array = md.digest(data.getBytes("UTF-8"));
-		StringBuilder sb = new StringBuilder();
-		for (byte item : array) {
-			sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
+	public String md5(String data) throws WeixinException {
+		try {
+			java.security.MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] array = md.digest(data.getBytes("UTF-8"));
+			StringBuilder sb = new StringBuilder();
+			for (byte item : array) {
+				sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
+			}
+			return sb.toString().toUpperCase();
+		} catch (Exception e) {
+			throw new WeixinException(e);
 		}
-		return sb.toString().toUpperCase();
 	}
 
 	@Override
-	public String generateSignature(Map<String, String> data, String key, SignType signType) throws Exception {
+	public String generateSignature(Map<String, String> data, String key, SignType signType) throws WeixinException {
 		Set<String> keySet = data.keySet();
 		String[] keyArray = keySet.toArray(new String[keySet.size()]);
 		Arrays.sort(keyArray);

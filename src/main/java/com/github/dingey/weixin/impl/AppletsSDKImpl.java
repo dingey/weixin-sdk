@@ -1,17 +1,16 @@
 package com.github.dingey.weixin.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.github.dingey.weixin.AppletsSDK;
+import com.github.dingey.weixin.WeixinException;
 
 public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 
 	@Override
-	public Object getWXACode(String accessToken, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws IOException {
+	public Object getWXACode(String accessToken, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws WeixinException {
 		StringBuilder sb = new StringBuilder();
 		sb.append("path=").append(path);
 		if (width != null) {
@@ -35,13 +34,13 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
-			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, sb.toString(), conn.getContentType(), new String(array, "utf-8"));
+			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, sb.toString(), conn.getContentType(), toString(array, "utf-8"));
 		}
-		return fromJson(new String(array, "utf-8"));
+		return fromJson(toString(array, "utf-8"));
 	}
 
 	@Override
-	public Object getWXACodeUnlimit(String accessToken, String scene, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws IOException {
+	public Object getWXACodeUnlimit(String accessToken, String scene, String path, Integer width, Boolean autoColor, String lineColor, Boolean isHyaline) throws WeixinException {
 		Map<String, Object> param = new HashMap<>();
 		param.put("scene", scene);
 		if (path != null) {
@@ -69,13 +68,13 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
-			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), new String(array, "utf-8"));
+			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), toString(array, "utf-8"));
 		}
-		return fromJson(new String(array, "utf-8"));
+		return fromJson(toString(array, "utf-8"));
 	}
 
 	@Override
-	public Object createWXAQRCode(String accessToken, String path, Integer width) throws IOException {
+	public Object createWXAQRCode(String accessToken, String path, Integer width) throws WeixinException {
 		Map<String, Object> param = new HashMap<>();
 		param.put("path", path);
 		if (width != null) {
@@ -91,13 +90,13 @@ public class AppletsSDKImpl extends MpSDKImpl implements AppletsSDK {
 		if (contentType.contains("jpeg")) {
 			return array;
 		} else {
-			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), new String(array, "utf-8"));
+			getLogger().warn("请求地址{},请求参数{},返回头{},返回内容{}", path, paramStr, conn.getContentType(), toString(array, "utf-8"));
 		}
-		return fromJson(new String(array, "utf-8"));
+		return fromJson(toString(array, "utf-8"));
 	}
 
 	@Override
-	public Map<String, Object> jscode2session(String appid, String secret, String jsCode, String grantType) throws Exception {
+	public Map<String, Object> jscode2session(String appid, String secret, String jsCode, String grantType) throws WeixinException {
 		String resp = request("https://api.weixin.qq.com/sns/jscode2session?appid=" + appid + "&secret=" + secret + "&js_code=" + jsCode + "&grant_type=" + grantType == null? "authorization_code": grantType);
 		return fromJson(resp);
 	}

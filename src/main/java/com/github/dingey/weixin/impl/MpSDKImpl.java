@@ -15,7 +15,7 @@ public class MpSDKImpl extends MerchantPaySDKImpl implements MpSDK {
     @Override
     public Map<String, String> token(String appid, String secret) throws WeixinException {
         String string = request("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + appid + "&secret=" + secret);
-        return fromXml(string);
+        return fromJson(string);
     }
 
     @Override

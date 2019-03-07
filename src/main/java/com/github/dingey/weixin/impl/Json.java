@@ -145,7 +145,7 @@ class Json {
                 }
             }
             return str.deleteCharAt(str.length() - 1).append("]").toString();
-        } else if (o.getClass() == java.util.Map.class || o.getClass() == java.util.LinkedHashMap.class) {
+        } else if (o instanceof Map) {
             Map<?, ?> m0 = (Map<?, ?>) o;
             StringBuilder str = new StringBuilder().append("{");
             for (Object key : m0.keySet()) {

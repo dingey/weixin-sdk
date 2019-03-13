@@ -14,7 +14,7 @@ public interface MpSDK extends MerchantPaySDK {
      * @return json结果
      * @throws WeixinException 异常
      */
-    Map<String, String> token(String appid, String secret) throws WeixinException;
+    Map<String, Object> token(String appid, String secret) throws WeixinException;
 
     /**
      * <a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1433751277">获取模板列表</a>

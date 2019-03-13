@@ -184,7 +184,7 @@ class Json {
         } else if ((json == null || json.isEmpty()) && c.isPrimitive()) {
             throw new IllegalArgumentException("json is null or empty that can't be transform to primitive Class.");
         }
-        return (T) toObjectVal(toObject(json), c);
+        return (T) toObjectVal(toObject(json.replace("\\/","/")), c);
     }
 
     public <T> List<T> toObjects(String json, Class<T> c) {

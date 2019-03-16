@@ -6,7 +6,7 @@
 <dependency>
     <groupId>com.github.dingey</groupId>
     <artifactId>weixin-sdk</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.4</version>
 </dependency>    
 ```
 # 使用sdk
